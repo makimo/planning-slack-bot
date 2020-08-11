@@ -9,8 +9,6 @@
                  [com.slack.api/slack-api-client "1.1.1"]
                  [org.julienxx/clj-slack "0.6.3"]]
 
-  :env {:slack-token "xoxb-4089195133-1292908442416-pJ1MP6q4pbvqqNkaOyEjN8lW"}
-
   :main ^:skip-aot slack-planning-bot.core
   :target-path "target/%s"
   :profiles {:uberjar {:aot :all}})

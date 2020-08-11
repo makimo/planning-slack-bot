@@ -1,7 +1,7 @@
 (ns slack-planning-bot.slack
   "Slack client for Clojure. Wraps Slack Java SDK. Example usage:
 
-    (let [token 'xoxb-4089195133-1292908442416-pJ1MP6q4pbvqqNkaOyEjN8lW'
+    (let [token 'xoxb-...'
           client (get-slack-client token)
           users (fetch-users client)]
          ;; Send message to all users.
