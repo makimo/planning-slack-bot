@@ -11,3 +11,13 @@ Założenia ludzkie:
 Pomysły od czapy:
 1. Kogo pilnować bardziej. Jeśli ktoś nagminnie niedologowuje czasu, margines powinien się zmniejszać, potem wracać. Może być fajnym osobnym miniprojektem na jakąś nieliniową logikę, może nawet AI
 2. Możliwość reakcji (Łapką w górę/Łapką w dół), żeby badać kiedy bot nam się wykłada na byciu nadgorliwym.
+
+## 1. Entity
+
+### a. Bot configuration/state
+
+- Planning weekday, e.g. thursday
+- Planning interval, e.g. two weeks
+- Next planning date, 04.05.20
+
+Next planning date is calculated by the bot based on current value of planning weekday and interval.
