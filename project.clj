@@ -7,8 +7,10 @@
   :dependencies [[org.clojure/clojure "1.10.0"]
                  [environ "0.5.0"]
                  [com.slack.api/slack-api-client "1.1.1"]
-                 [org.julienxx/clj-slack "0.6.3"]]
+                 [clojurewerkz/quartzite "2.1.0"]
+                 [mount "0.1.11"]
+                 [clj-http "3.10.1"]]
 
-  :main ^:skip-aot slack-planning-bot.core
+  :main ^:skip-aot slack-planning-bot.delivery.server
   :target-path "target/%s"
   :profiles {:uberjar {:aot :all}})

@@ -1,4 +1,4 @@
-(ns slack-planning-bot.slack
+(ns slack-planning-bot.delivery.slack
   "Slack client for Clojure. Wraps Slack Java SDK. Example usage:
 
     (let [token 'xoxb-...'
@@ -6,7 +6,8 @@
           users (fetch-users client)]
          ;; Send message to all users.
       (send-message-to-users client users 'hello'))"
-  (:require [environ.core :refer [env]])
+  (:require [slack-planning-bot.core.entity :as entity]
+            [environ.core :refer [env]])
   (:import (com.slack.api Slack)
            (com.slack.api.methods.request.chat ChatPostMessageRequest)
            (com.slack.api.methods.request.conversations ConversationsOpenRequest)
@@ -81,3 +82,11 @@
   (let [user-ids (if (string? (take 1 users)) users (map :id users))
         conv-id (open-conversation client user-ids)]
     (send-message client conv-id message)))
+
+(defrecord SlackClient [client]
+  entity/Messenger
+  (send-message-to-user[this user-id message]))
+
+(defn make-slack-client
+  [token]
+  (->SlackClient (get-slack-client token)))
