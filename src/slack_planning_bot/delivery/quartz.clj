@@ -6,7 +6,12 @@
             [clojurewerkz.quartzite.jobs :refer [defjob]]
             [clojurewerkz.quartzite.schedule.simple :as s]))
 
-(def trigger-key (t/key "planning.job.trigger"))
+(defmacro def- [item value] `(def ^:private ~item ~value))
+
+(def- trigger-key (t/key "planning.job.trigger"))
+(def- job-key (j/key "planning.job"))
+(def- planning-job-fn (atom (fn [])))
+(defjob PlanningJob [c] (@planning-job-fn))
 
 (defn- create-next-trigger
   "Create trigger for the next planning"
@@ -16,18 +21,22 @@
     (t/start-at date)))
 
 (defn- cancel-job
-  [])
+  [client]
+  (qs/delete-trigger client trigger-key))
 
 (defn- schedule-job
   [client job-fn date]
-  (cancel-job)
-  (let [trigger (create-next-trigger date)]
-    ))
+  (cancel-job client)
+  (reset! planning-job-fn job-fn)
+  (let [trigger (create-next-trigger date)
+        job (j/build (j/of-type PlanningJob)
+                     (j/with-identity job-key))]
+    (qs/schedule client job trigger)))
 
 (defrecord QuartzScheduler [client]
   entity/Scheduler
-  (schedule-job [this job-fn date] (schedule-job client job-fn date))
-  (cancel-job [this]))
+  (-schedule-job [_ job-fn date] (schedule-job client job-fn date))
+  (-cancel-job [_] (cancel-job client)))
 
 (defn make-quartz-scheduler
   []

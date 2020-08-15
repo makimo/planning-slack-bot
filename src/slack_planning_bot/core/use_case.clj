@@ -5,11 +5,6 @@
   [{:keys [time-tracker name-provider messenger planning-config]}]
   (fn []))
 
-(defn reschedule-next-planning
-  [{:keys [scheduler planning-config]}]
-  (fn [new-date]
-    (schedule-job scheduler send-reminders)))
-
 (defn configure-planning
   [{:keys [scheduler planning-config]}]
-  (fn []))
+  (fn [{:keys [next-planning interval day-of-week]}]))

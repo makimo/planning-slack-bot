@@ -18,16 +18,16 @@
   [response]
   (keyword? response))
 
-(defn response->error
+(defn- response->error
   [response]
   (keyword (.getError response)))
 
-(defn get-channel
+(defn- get-channel
   "Build Channel instance, given its ID."
   [id]
   (.channel (ChatPostMessageRequest/builder) id))
 
-(defn get-slack-client
+(defn- get-slack-client
   "Build Slack client instance, given authorization token.
   If no token is specified, default one is loaded from the environment.
   All Slack functions require Slack client instance."
@@ -36,7 +36,7 @@
   ([token]
    (.methods (Slack/getInstance) token)))
 
-(defn user->map
+(defn- user->map
   "Convert User instance to plain map."
   [user]
   ;; Extract more fields as needed.
@@ -45,7 +45,7 @@
    :is-deleted (.isDeleted user)
    :is-bot     (.isBot user)})
 
-(defn fetch-users
+(defn- fetch-users
   "Fetch Slack users (see user->map for schema)."
   [client]
   (let [response (.usersList client (.build (UsersListRequest/builder)))]
@@ -57,7 +57,7 @@
            (map #(dissoc % :is-bot :is-deleted))
            set))))
 
-(defn open-conversation
+(defn- open-conversation
   "Create or re-join conversation with specified users.
   Returns channel ID (string) or error keyword."
   [client users]
@@ -67,7 +67,7 @@
       (.getId (.getChannel response))
       (response->error response))))
 
-(defn send-message
+(defn- send-message
   "Send message to specified channel."
   [client channel-id message]
   (let [request (.build (.text (get-channel channel-id) message))
@@ -75,17 +75,32 @@
     (if-not (.isOk response)
       (response->error response))))
 
-(defn send-message-to-users
+(defn- send-message-to-user
   "Send message to specified users.
   Accept both set of user-maps or list of user-ids."
-  [client users message]
-  (let [user-ids (if (string? (take 1 users)) users (map :id users))
-        conv-id (open-conversation client user-ids)]
-    (send-message client conv-id message)))
+  [client user message]
+  (let [id-or-error (open-conversation client [user])]
+    (if (is-error? id-or-error)
+      id-or-error
+      (send-message client id-or-error message))))
+
+(defn- send-messages-to-users
+  [client slack-username->message]
+  (let [usernames (set (keys slack-username->message))
+        name->id (->> (fetch-users client)
+                      (filter #(contains? usernames (:name %)))
+                      (map (fn [m] [(:name m) (:id m)]))
+                      (into {}))]
+    (->> slack-username->message
+         vec
+         (map (fn [[name message]]
+                [name (send-message-to-user client (name->id name) message)]))
+         (into {}))))
 
 (defrecord SlackClient [client]
   entity/Messenger
-  (send-message-to-user[this user-id message]))
+  (-send-messages-to-users [_ user-id->message]
+    (send-messages-to-users client user-id->message)))
 
 (defn make-slack-client
   [token]
