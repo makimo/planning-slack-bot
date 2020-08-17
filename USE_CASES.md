@@ -21,3 +21,19 @@ Pomysły od czapy:
 - Next planning date, 04.05.20
 
 Next planning date is calculated by the bot based on current value of planning weekday and interval.
+Next date must be no sooner than next week. We cannot assume that next planning will be calculated
+on the same day as the next planning (because plannings can be rescheduled manually by the user).
+
+#### Example #1:
+
+Next planning is scheduled on Thursday (day-of-the-week is 4, interval is 7).
+However, on Monday user reschedules planning to Tuesday.
+In this case the planning should take place on Tuesday and Thursday next week.
+
+#### Example #2:
+
+Planning is on Tuesday but user reschedules to Thursday. In such case,
+planning should take place on Thursday and next week on Tuesday.
+
+If user reconfigures interval or day-of-the-week value, the changes takes effect 
+on next scheduling (next planning stays the same).
