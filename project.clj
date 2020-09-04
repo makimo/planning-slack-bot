@@ -10,8 +10,12 @@
                  [clojurewerkz/quartzite "2.1.0"]
                  [com.slack.api/slack-api-client "1.1.1"]
                  [environ "1.2.0"]
-                 [mount "0.1.11"]]
-
+                 [mount "0.1.11"]
+                 [clj-http "3.10.1"]
+                 [clj-time "0.15.2"]
+                 [com.walmartlabs/cond-let "1.0.0"]
+                 [org.clojure/test.check "1.0.0"]
+                 [org.clojure/data.json "1.0.0"]]
   :plugins [[lein-environ "1.2.0"]]
   :main ^:skip-aot slack-planning-bot.delivery.server
   :target-path "target/%s"
