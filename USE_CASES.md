@@ -57,3 +57,14 @@ Bot should allow external entities (users) to configure itself.
 It should provide REST API to change next planning date, day-of-week
 and interval. When internal state changes, appropriate changes
 should be made to scheduled jobs.
+
+#### Caveats
+
+- When user specifies `next-planning`, bot should reschedule next job
+and save the date user specified.
+- When user specifies `interval` and/or `day-of-week`, the bot should
+save those settings without rescheduling next job and use new settings
+to calculate next planning the next time (after next planning).
+
+User should not be able to change both `next-planning` and other settings
+at the same time.
