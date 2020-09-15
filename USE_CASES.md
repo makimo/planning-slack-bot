@@ -37,3 +37,23 @@ planning should take place on Thursday and next week on Tuesday.
 
 If user reconfigures interval or day-of-the-week value, the changes takes effect 
 on next scheduling (next planning stays the same).
+
+## 2. Use cases
+
+### a. Reminder job
+
+First and foremost responsibility of the bot is to remind users to log their time.
+In order to do this, bot must be able to:
+
+- Schedule its own activity (always one day before planning)
+- When activated, load configured users (TBD)
+- For each user, determine how many hours were logged
+- For each user, decide whether reminder should be sent and send it
+- Schedule its next reminder job (determine when next planning should be)
+
+### b. Configuration API
+
+Bot should allow external entities (users) to configure itself.
+It should provide REST API to change next planning date, day-of-week
+and interval. When internal state changes, appropriate changes
+should be made to scheduled jobs.
