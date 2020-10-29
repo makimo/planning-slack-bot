@@ -5,12 +5,19 @@
             :url "https://www.eclipse.org/legal/epl-2.0/"}
 
   :dependencies [[org.clojure/clojure "1.10.0"]
-                 [environ "0.5.0"]
-                 [com.slack.api/slack-api-client "1.1.1"]
+                 [org.clojure/data.json "1.0.0"]
+                 [cheshire "5.10.0"]
+                 [clj-http "3.10.1"]
                  [clojurewerkz/quartzite "2.1.0"]
-                 [mount "0.1.11"]
-                 [clj-http "3.10.1"]]
+                 [com.slack.api/slack-api-client "1.1.1"]
+                 [environ "1.2.0"]
+                 [mount "0.1.11"]]
 
+  :plugins [[lein-environ "1.2.0"]]
   :main ^:skip-aot slack-planning-bot.delivery.server
   :target-path "target/%s"
-  :profiles {:uberjar {:aot :all}})
+  :profiles {:dev {:env {:url "http://0.0.0.0:8080/"
+                         :jira-email "mateusz@makimo.pl"
+                         :jira-host "https://makimo.atlassian.net"
+                         :jira-token "e7fcfc0F13FOd9IRiapv7C8F"}}
+             :uberjar {:aot :all}})
