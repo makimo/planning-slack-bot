@@ -63,13 +63,11 @@
     (e/get-user-id provider time-tracker-id)))
 
 (defn- message-users
-  [tracker provider messenger config]
-  (fn [{int :interval day :day-of-week}]
-    (let [users (utils/user-list)]
-      (for [user users]
-        (if (not (properly-logged-time tracker (user :id) int))
-          (send-message messenger
-            (get-name-from-provider provider (user :id))))))))
+  [tracker provider messenger {:keys [interval]}]
+  (for [user [utils/user-list]]
+    (if-not (properly-logged-time tracker (user :id) interval)
+      (send-message messenger
+        (get-name-from-provider provider (user :id))))))
 
 (defn send-reminders
   "Schedule its own activity (always one day before planning)
