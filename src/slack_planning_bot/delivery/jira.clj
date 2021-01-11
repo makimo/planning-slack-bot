@@ -4,9 +4,6 @@
             [cheshire.core                  :as json]
             [environ.core                   :refer [env]]))
 
-(def start-date 1610082000000)
-(def end-date 1610115315000)
-
 (defn get-worklogs-list
   "Gets a list of worklogs starting from the date specified in the argument.
    Limit of 1000 lines per query."
@@ -79,9 +76,7 @@
 
 (defrecord JiraClient []
   entity/TimeTracker
-  (-get-logged-time [this start-date end-date]
+  (-get-logged-time [_ start-date end-date]
     (get-logged-time start-date end-date)))
 
 (defn make-jira-client [] (->JiraClient))
-
-(get-logged-time start-date end-date)

@@ -8,7 +8,7 @@
 (defprotocol TimeTracker
   "Abstract time-tracker protocol. Gives ability to get amount of
   logged time for users."
-  (-get-logged-time [this user-id start-date end-date]))
+  (-get-logged-time [this start-date end-date]))
 
 (defprotocol MessengerNameProvider
   "Abstract name-provider for messenger, exchanges user-ids."
@@ -29,7 +29,7 @@
   (-send-messages-to-users messenger user-id->message))
 
 (defn get-logged-time [tracker user-id start-date end-date]
-  (-get-logged-time tracker user-id start-date end-date))
+  (-get-logged-time tracker start-date end-date))
 
 (defn get-user-id [provider time-tracker-user-id]
   (-get-user-id provider time-tracker-user-id))
