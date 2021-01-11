@@ -17,7 +17,5 @@
   :main ^:skip-aot slack-planning-bot.delivery.server
   :target-path "target/%s"
   :profiles {:dev {:env {:url "http://0.0.0.0:8080/"
-                         :jira-email "mateusz@makimo.pl"
-                         :jira-host "https://makimo.atlassian.net"
-                         :jira-token "e7fcfc0F13FOd9IRiapv7C8F"}}
+                         :jira-host "https://makimo.atlassian.net"}}
              :uberjar {:aot :all}})
