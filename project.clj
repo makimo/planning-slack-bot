@@ -7,7 +7,6 @@
   :dependencies [[org.clojure/clojure "1.10.0"]
                  [org.clojure/data.json "1.0.0"]
                  [cheshire "5.10.0"]
-                 [clj-http "3.10.1"]
                  [clojurewerkz/quartzite "2.1.0"]
                  [com.slack.api/slack-api-client "1.1.1"]
                  [environ "1.2.0"]
