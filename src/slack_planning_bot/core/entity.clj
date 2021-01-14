@@ -30,7 +30,7 @@
 (defn send-message-to-user [messenger user-id->message]
   (-send-messages-to-users messenger user-id->message))
 
-(defn get-logged-time [tracker user-id start-date end-date]
+(defn get-logged-time [tracker start-date end-date]
   (-get-logged-time tracker start-date end-date))
 
 (defn get-user-id [provider time-tracker-user-id]

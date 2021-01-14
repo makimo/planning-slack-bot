@@ -40,43 +40,47 @@
   (result->action :e/send-reminder
     (e/send-message-to-user messenger (hash-map user-id "message"))))
 
-(defn- count-logged-hours
-  "Returns user's logged hours starting with today's date minus interval"
-  [tracker user-id interval]
-  (result->action :e/get-logged-time
-    (e/get-logged-time
-      tracker
-      user-id
-      (t/minus (t/now) (t/days interval))
-      (t/now))))
-
 (defn- properly-logged-time
   "Checks if user properly logged time the benchmark is 8 hours a day
-  counted from the previous interval until today"
-  [tracker user-id interval]
-  (>= (count-logged-hours tracker user-id interval)
-    (* (- interval 2) 5)))
+counted from the previous interval until today (in seconds)"
+  [user-logged-time start-date end-date]
+  (>= (user-logged-time)
+    (* (* (utils/count-work-days start-date end-date) 8) 3600)))
 
 (defn- get-name-from-provider
   [provider time-tracker-id]
   (result->action :e/get-user-id
     (e/get-user-id provider time-tracker-id)))
 
+(defn- get-logged-time
+  [tracker start-date end-date]
+  (result->action :e/get-logged-time
+    (e/get-logged-time
+      tracker
+      start-date
+      end-date)))
+
 (defn- message-users
-  [tracker provider messenger {:keys [interval]}]
-  (for [user [utils/user-list]]
-    (if-not (properly-logged-time tracker (user :id) interval)
-      (send-message messenger
-        (get-name-from-provider provider (user :id))))))
+  [tracker provider messenger interval]
+  (let [start-date        (t/minus (t/now) (t/days interval))
+        end-date          (t/now)
+        users-logged-time (get-logged-time tracker start-date end-date)]
+    (for [user [utils/user-list]]
+      (if-not (properly-logged-time
+                (get users-logged-time (user :id))
+                start-date
+                end-date)
+        (send-message messenger
+          (get-name-from-provider provider (user :id)))))))
 
 (defn send-reminders
   "Schedule its own activity (always one day before planning)
   and send reminders to users if needed"
   [scheduler time-tracker name-provider messenger planning-config]
-  (message-users time-tracker name-provider messenger planning-config)
   (let [int       (get @planning-config :interval)
         day       (get @planning-config :day-of-week)
         calc-next (e/calculate-next-planning (t/now) int day)]
+    (message-users time-tracker name-provider messenger int)
     (update-next-planning planning-config calc-next)
     (->> calc-next
       (e/schedule-job scheduler

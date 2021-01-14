@@ -61,7 +61,7 @@
 
 (defrecord TestTimeTracker [token]
   e/TimeTracker
-  (-get-logged-time [_ user-id- start-date end-date] get-logged-time))
+  (-get-logged-time [_ start-date end-date] get-logged-time))
 
 (defrecord TestNameProvider []
   e/MessengerNameProvider
