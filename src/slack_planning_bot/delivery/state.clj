@@ -7,7 +7,7 @@
             [mount.core :refer [defstate]]))
 
 (defstate slack-client   :start (make-slack-client "..."))
-(defstate jira-client    :start (make-jira-client "..."))
+(defstate jira-client    :start (make-jira-client ))
 (defstate scheduler      :start (make-quartz-scheduler))
 (defstate name-ms-client :start (make-name-ms-client))
 
