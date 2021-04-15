@@ -6,8 +6,7 @@
           users (fetch-users client)]
          ;; Send message to all users.
       (send-message-to-users client users 'hello'))"
-  (:require [slack-planning-bot.core.entity :as entity]
-            [environ.core :refer [env]])
+  (:require [slack-planning-bot.core.entity :as entity])
   (:import (com.slack.api Slack)
            (com.slack.api.methods.request.chat ChatPostMessageRequest)
            (com.slack.api.methods.request.conversations ConversationsOpenRequest)
@@ -31,10 +30,8 @@
   "Build Slack client instance, given authorization token.
   If no token is specified, default one is loaded from the environment.
   All Slack functions require Slack client instance."
-  ([]
-   (.methods (Slack/getInstance) (env :slack-token)))
-  ([token]
-   (.methods (Slack/getInstance) token)))
+  [token]
+  (.methods (Slack/getInstance) token))
 
 (defn- user->map
   "Convert User instance to plain map."
@@ -77,7 +74,8 @@
 
 (defn- send-message-to-user
   "Send message to specified users.
-  Accept both set of user-maps or list of user-ids."
+  Accept both set of user-maps or list of user-ids.
+  User ID for this function is an internal Slack ID, e.g. 'U01BJDKYPQ'."
   [client user message]
   (let [id-or-error (open-conversation client [user])]
     (if (is-error? id-or-error)

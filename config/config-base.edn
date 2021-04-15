@@ -1,0 +1,6 @@
+{:name-service-url ""
+ :slack-token ""
+ :jira-email ""
+ :jira-host ""
+ :jira-token ""
+ :users {}}
