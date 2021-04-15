@@ -1,21 +1,21 @@
 (ns slack-planning-bot.core.action)
 
 (defn make-action
-  "Creates new action."
+  "Creates a new action."
   ([type payload]
-   {:type    type
-    :error   nil
-    :payload payload})
+   {::type    type
+    ::error   nil
+    ::payload payload})
   ([type]
-   {:type    type
+   {::type    type
     :error    nil}))
 
 (defn make-error
-  "Creates new error action."
+  "Creates a new error action."
   ([type error payload]
-   {:type    type
-    :error   error
-    :payload payload})
+   {::type    type
+    ::error   error
+    ::payload payload})
   ([type error]
-   {:type    type
-    :error   error}))
+   {::type    type
+    ::error   error}))
