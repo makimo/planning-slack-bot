@@ -7,12 +7,12 @@
             [slack-planning-bot.core.spec :as cs]))
 
 (defn- response
-  [id]
-  (client/get (str (env :url) "Slack?Jira=" id)))
+  [url id]
+  (client/get (str url "slack?jira=" id)))
 
 (defn- handle-response
-  [id]
-  (try (response id)
+  [url id]
+  (try (response url id)
        (catch Exception e
          (let [err (-> e
                        Throwable->map
@@ -27,9 +27,9 @@
              :unexpected)))))
 
 (defn- get-user-id
-  [time-tracker-user-id]
+  [url time-tracker-user-id]
   (if (s/valid? ::cs/message time-tracker-user-id)
-    (let [response (handle-response time-tracker-user-id)]
+    (let [response (handle-response url time-tracker-user-id)]
       (if (not (keyword? response))
         (-> response
             :body
@@ -38,9 +38,10 @@
         response))
     :id-not-valid))
 
-(defrecord NameMicroserviceClient []
+(defrecord NameMicroserviceClient [url]
   entity/MessengerNameProvider
-  (-get-user-id [_ time-tracker-user-id] (get-user-id time-tracker-user-id)))
+  (-get-user-id [_ time-tracker-user-id]
+    (get-user-id url time-tracker-user-id)))
 
-(defn make-name-ms-client []
-  (->NameMicroserviceClient))
+(defn make-name-ms-client [url]
+  (->NameMicroserviceClient url))

@@ -35,43 +35,36 @@
   [config next]
   (swap! config assoc :next-planning next))
 
-(defn- send-message
-  [messenger user-id]
-  (result->action :e/send-reminder
-    (e/send-message-to-user messenger (hash-map user-id "message"))))
+(defn send-message
+  [messenger user-id time]
+  (let [msg (str "Od ostatniego planningu zalogowałeś/aś " (double (/ time 3600))
+                 " godzin. Upewnij się że zalogowałeś/aś wszystko.")]
+    (result->action :e/send-reminder
+      (e/send-message-to-user messenger (hash-map user-id msg)))))
 
 (defn- properly-logged-time
   "Checks if user properly logged time the benchmark is 8 hours a day
-counted from the previous interval until today (in seconds)"
+  counted from the previous interval until today (in seconds)"
   [user-logged-time start-date end-date]
-  (>= (user-logged-time)
+       (println [user-logged-time start-date end-date])
+  (>= user-logged-time
     (* (* (utils/count-work-days start-date end-date) 8) 3600)))
 
-(defn- get-name-from-provider
-  [provider time-tracker-id]
-  (result->action :e/get-user-id
-    (e/get-user-id provider time-tracker-id)))
-
-(defn- get-logged-time
-  [tracker start-date end-date]
-  (result->action :e/get-logged-time
-    (e/get-logged-time
-      tracker
-      start-date
-      end-date)))
-
-(defn- message-users
-  [tracker provider messenger interval]
+(defn message-users
+  [tracker provider messenger interval users]
   (let [start-date        (t/minus (t/now) (t/days interval))
         end-date          (t/now)
-        users-logged-time (get-logged-time tracker start-date end-date)]
-    (for [user [utils/user-list]]
-      (if-not (properly-logged-time
-                (get users-logged-time (user :id))
-                start-date
-                end-date)
-        (send-message messenger
-          (get-name-from-provider provider (user :id)))))))
+        start-date-unix   (/ (.getMillis start-date) 1000)
+        end-date-unix     (/ (.getMillis end-date) 1000)
+        users-logged-time (e/get-logged-time tracker
+                                             start-date-unix
+                                             end-date-unix)]
+    (for [user users]
+       (let [time (get users-logged-time (keyword (second user)) 0)]
+       (if-not (properly-logged-time time start-date end-date)
+          (do
+            (println "Attempting to send a message to " user)
+            (send-message messenger (first user) time)))))))
 
 (defn send-reminders
   "Schedule its own activity (always one day before planning)
@@ -79,8 +72,10 @@ counted from the previous interval until today (in seconds)"
   [scheduler time-tracker name-provider messenger planning-config]
   (let [int       (get @planning-config :interval)
         day       (get @planning-config :day-of-week)
+        users     (get @planning-config :users)
         calc-next (e/calculate-next-planning (t/now) int day)]
-    (message-users time-tracker name-provider messenger int)
+    (println int day calc-next users)
+    (println (message-users time-tracker name-provider messenger int users))
     (update-next-planning planning-config calc-next)
     (->> calc-next
       (e/schedule-job scheduler
@@ -94,7 +89,7 @@ counted from the previous interval until today (in seconds)"
 
 (defn- reschedule-planning
   [next scheduler tracker provider messenger config]
-  ((update-next-planning config next)
+  (update-next-planning config next)
    (->> next
      (e/schedule-job scheduler
        #(send-reminders
@@ -103,7 +98,7 @@ counted from the previous interval until today (in seconds)"
           provider
           messenger
           config))
-     (result->action :e/configure-planning))))
+     (result->action :e/configure-planning)))
 
 (defn configure-planning
   "There are 8 input possibilities (next-planning, interval, day-of-week),
