@@ -3,6 +3,7 @@
   (:require [io.pedestal.http :as server]
             [io.pedestal.http.route :as route]
             [mount.core :as mount]
+            [slack-planning-bot.delivery.state :as s]
             [slack-planning-bot.delivery.server.service :as service]
             [slack-planning-bot.delivery.server.utils :as utils]))
 
@@ -35,4 +36,5 @@
   [& args]
   (println "\nCreating your server...")
   (mount/start)
+  (s/configure-planning @s/planning-config)
   (server/start runnable-service))
