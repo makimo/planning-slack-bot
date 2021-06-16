@@ -12,6 +12,8 @@
            (com.slack.api.methods.request.conversations ConversationsOpenRequest)
            (com.slack.api.methods.request.users UsersListRequest)))
 
+(def request-delay 60000)
+
 (defn is-error?
   "Check if response is an error."
   [response]
@@ -70,7 +72,8 @@
   (let [request (.build (.text (get-channel channel-id) message))
         response (.chatPostMessage client request)]
     (if-not (.isOk response)
-      (response->error response))))
+      (response->error response)
+      (Thread/sleep request-delay))))
 
 (defn- send-message-to-user
   "Send message to specified users.
