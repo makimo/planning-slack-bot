@@ -36,7 +36,6 @@ jobs:
           REPOSITORY: planning-bot
           TAG: ${{ github.sha }}
           CONFIG: ${{ secrets.PLANNING_BOT_CONFIG }}
-        if: false
         run: |
           echo "$CONFIG" > config/prod/config.edn
           docker build -f docker/production/Dockerfile -t $REGISTRY/$REPOSITORY:$TAG .
