@@ -35,6 +35,7 @@ jobs:
           REGISTRY: ${{ steps.ecr.outputs.registry }}
           REPOSITORY: planning-bot-service
           TAG: ${{ github.sha }}
+        if: false
         run: |
           docker build -f docker/production/Dockerfile -t $REGISTRY/$REPOSITORY:$TAG .
           docker tag $REGISTRY/$REPOSITORY:$TAG $REGISTRY/$REPOSITORY:latest
