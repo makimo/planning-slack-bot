@@ -7,7 +7,7 @@ RUN ["lein", "uberjar"]
 
 FROM openjdk:15-alpine
 
-COPY --from=builder /app/target/slack-planning-bot-*-SNAPSHOT-standalone.jar /app/planning-bot.jar
+COPY --from=builder /app/target/uberjar/slack-planning-bot-*-SNAPSHOT-standalone.jar /app/planning-bot.jar
 
 WORKDIR /app
 
