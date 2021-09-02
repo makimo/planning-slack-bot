@@ -33,7 +33,7 @@ jobs:
       - name: Build and Push Backend Image to ECR
         env:
           REGISTRY: ${{ steps.ecr.outputs.registry }}
-          REPOSITORY: planning-bot-service
+          REPOSITORY: planning-bot
           TAG: ${{ github.sha }}
           CONFIG: ${{ secrets.PLANNING_BOT_CONFIG }}
         if: false
