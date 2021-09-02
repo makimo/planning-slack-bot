@@ -4,7 +4,7 @@ job "planning-bot" {
 
   group "bot" {
     network {
-      port "http" { to = 9000 }
+      port "http" { to = 8080 }
     }
 
     task "bot" {
