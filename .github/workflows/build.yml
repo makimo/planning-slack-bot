@@ -1,0 +1,107 @@
+name: Build bot image
+
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - src/**
+      - test/**
+      - config/**
+      - project.clj
+      - .github/workflows/build.yml
+      - docker/production/Dockerfile
+
+jobs:
+  bot-builder:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.MAKIMO_AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.MAKIMO_AWS_SECRET_ACCESS_KEY }}
+          aws-region: 'eu-west-1'
+
+      - name: Login to ECR
+        id: ecr
+        uses: aws-actions/amazon-ecr-login@v1
+
+      - name: Build and Push Backend Image to ECR
+        env:
+          REGISTRY: ${{ steps.ecr.outputs.registry }}
+          REPOSITORY: planning-bot-service
+          TAG: ${{ github.sha }}
+        if: false
+        run: |
+          docker build -f docker/production/Dockerfile -t $REGISTRY/$REPOSITORY:$TAG .
+          docker tag $REGISTRY/$REPOSITORY:$TAG $REGISTRY/$REPOSITORY:latest
+          docker push $REGISTRY/$REPOSITORY:$TAG
+          docker push $REGISTRY/$REPOSITORY:latest
+
+      - name: Generate SSL certificates
+        env:
+          CONSUL_CA_CERT: ${{ secrets.MAKIMO_CONSUL_CA_CERT }}
+          CONSUL_CA_KEY: ${{ secrets.MAKIMO_CONSUL_CA_KEY }}
+          NOMAD_CA_CERT: ${{ secrets.MAKIMO_NOMAD_CA_CERT }}
+          NOMAD_CA_KEY: ${{ secrets.MAKIMO_NOMAD_CA_KEY }}
+        run: |
+          mkdir ssl && cd ssl
+          echo "$CONSUL_CA_CERT" > consul-agent-ca.pem
+          echo "$CONSUL_CA_KEY" > consul-agent-ca-key.pem
+          echo "$NOMAD_CA_CERT" > nomad-agent-ca.pem
+          echo "$NOMAD_CA_KEY" > nomad-agent-ca-key.pem
+
+          # Generate client certificate
+          openssl req -new -newkey rsa:2048 -nodes -keyout client.consul.key -out client.consul.csr -subj '/CN=gh.client.makimo1.consul'
+          openssl x509 -req -in client.consul.csr -CA consul-agent-ca.pem -CAkey consul-agent-ca-key.pem -out client.consul.crt -CAcreateserial
+
+          openssl req -new -newkey rsa:2048 -nodes -keyout client.nomad.key -out client.nomad.csr -subj '/CN=gh.client.global.nomad'
+          openssl x509 -req -in client.nomad.csr -CA nomad-agent-ca.pem -CAkey nomad-agent-ca-key.pem -out client.nomad.crt -CAcreateserial
+
+          rm consul-agent-ca-key.pem
+          rm nomad-agent-ca-key.pem
+        working-directory: terraform
+
+      - name: Install Consul locally
+        run: |
+          curl -o consul.zip https://releases.hashicorp.com/consul/1.10.1/consul_1.10.1_linux_amd64.zip
+          unzip consul.zip
+          rm consul.zip
+        working-directory: terraform
+
+      - name: Store current image tag in Consul
+        env:
+          CONSUL_HTTP_TOKEN: ${{ secrets.CONSUL_TOKEN }}
+          CONSUL_HTTP_ADDR: https://hs.makimo.pl:8501
+          CONSUL_CACERT: terraform/ssl/consul-agent-ca.pem
+          CONSUL_CLIENT_CERT: terraform/ssl/client.consul.crt
+          CONSUL_CLIENT_KEY: terraform/ssl/client.consul.key
+          TAG: ${{ github.sha }}
+        run: ./terraform/consul kv put internal/planning-bot/backend_tag "$TAG"
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v1
+        with:
+          terraform_version: 1.0.x
+          terraform_wrapper: false
+
+      - name: Terraform Init
+        id: init
+        env:
+          CONSUL_TOKEN: ${{ secrets.CONSUL_TOKEN }}
+          CONSUL_HTTP_TOKEN: ${{ secrets.CONSUL_TOKEN }}
+          NOMAD_TOKEN: ${{ secrets.MAKIMO_NOMAD_TOKEN }}
+        run: terraform init
+        working-directory: terraform
+
+      - name: Terraform Apply
+        env:
+          CONSUL_TOKEN: ${{ secrets.CONSUL_TOKEN }}
+          CONSUL_HTTP_TOKEN: ${{ secrets.CONSUL_TOKEN }}
+          NOMAD_TOKEN: ${{ secrets.MAKIMO_NOMAD_TOKEN }}
+        run: terraform apply -auto-approve -input=false -target=nomad_job.planning_bot
+        working-directory: terraform
