@@ -33,10 +33,12 @@ jobs:
       - name: Build and Push Backend Image to ECR
         env:
           REGISTRY: ${{ steps.ecr.outputs.registry }}
-          REPOSITORY: planning-bot-service
+          REPOSITORY: planning-bot
           TAG: ${{ github.sha }}
+          CONFIG: ${{ secrets.PLANNING_BOT_CONFIG }}
         if: false
         run: |
+          echo "$CONFIG" > config/prod/config.edn
           docker build -f docker/production/Dockerfile -t $REGISTRY/$REPOSITORY:$TAG .
           docker tag $REGISTRY/$REPOSITORY:$TAG $REGISTRY/$REPOSITORY:latest
           docker push $REGISTRY/$REPOSITORY:$TAG
