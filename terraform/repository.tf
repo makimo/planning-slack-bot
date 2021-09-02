@@ -1,4 +1,4 @@
-resource "aws_ecr_repository" "name_microservice" {
+resource "aws_ecr_repository" "planning_bot" {
   name                 = "planning-bot"
   image_tag_mutability = "MUTABLE"
 
