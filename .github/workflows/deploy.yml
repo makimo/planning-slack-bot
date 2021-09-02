@@ -1,0 +1,77 @@
+name: Deploy Production
+
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - terraform/**
+      - .github/workflows/deploy.yml
+
+jobs:
+  terraform:
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: terraform
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.MAKIMO_AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.MAKIMO_AWS_SECRET_ACCESS_KEY }}
+          aws-region: 'eu-west-1'
+          mask-aws-account-id: 'no'
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v1
+        with:
+          terraform_version: 1.0.x
+          terraform_wrapper: false
+
+      - name: Terraform Format
+        id: fmt
+        run: terraform fmt -check
+
+      - name: Generate SSL certificates
+        env:
+          CONSUL_CA_CERT: ${{ secrets.MAKIMO_CONSUL_CA_CERT }}
+          CONSUL_CA_KEY: ${{ secrets.MAKIMO_CONSUL_CA_KEY }}
+          NOMAD_CA_CERT: ${{ secrets.MAKIMO_NOMAD_CA_CERT }}
+          NOMAD_CA_KEY: ${{ secrets.MAKIMO_NOMAD_CA_KEY }}
+        run: |
+          mkdir ssl && cd ssl
+          echo "$CONSUL_CA_CERT" > consul-agent-ca.pem
+          echo "$CONSUL_CA_KEY" > consul-agent-ca-key.pem
+          echo "$NOMAD_CA_CERT" > nomad-agent-ca.pem
+          echo "$NOMAD_CA_KEY" > nomad-agent-ca-key.pem
+
+          # Generate client certificate
+          openssl req -new -newkey rsa:2048 -nodes -keyout client.consul.key -out client.consul.csr -subj '/CN=gh.client.makimo1.consul'
+          openssl x509 -req -in client.consul.csr -CA consul-agent-ca.pem -CAkey consul-agent-ca-key.pem -out client.consul.crt -CAcreateserial
+
+          openssl req -new -newkey rsa:2048 -nodes -keyout client.nomad.key -out client.nomad.csr -subj '/CN=gh.client.global.nomad'
+          openssl x509 -req -in client.nomad.csr -CA nomad-agent-ca.pem -CAkey nomad-agent-ca-key.pem -out client.nomad.crt -CAcreateserial
+
+          rm consul-agent-ca-key.pem
+          rm nomad-agent-ca-key.pem
+
+      - name: Terraform Init
+        id: init
+        env:
+          CONSUL_TOKEN: ${{ secrets.CONSUL_TOKEN }}
+          CONSUL_HTTP_TOKEN: ${{ secrets.CONSUL_TOKEN }}
+          NOMAD_TOKEN: ${{ secrets.MAKIMO_NOMAD_TOKEN }}
+        run: terraform init
+
+      - name: Terraform Apply
+        id: plan
+        env:
+          CONSUL_TOKEN: ${{ secrets.CONSUL_TOKEN }}
+          CONSUL_HTTP_TOKEN: ${{ secrets.CONSUL_TOKEN }}
+          NOMAD_TOKEN: ${{ secrets.MAKIMO_NOMAD_TOKEN }}
+        run: terraform apply -auto-approve -input=false
