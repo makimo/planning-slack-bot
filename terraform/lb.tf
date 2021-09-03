@@ -23,3 +23,74 @@ resource "aws_lb_listener_certificate" "backend" {
   listener_arn    = data.aws_lb_listener.https.arn
   certificate_arn = aws_acm_certificate.planning_bot.arn
 }
+
+resource "aws_wafv2_web_acl" "planning_bot" {
+  name        = "planning-bot-gateway-acl"
+  description = "Web ACL that prevents from accessing Planning Bot from outside the office"
+  scope       = "REGIONAL"
+
+  default_action {
+    allow {}
+  }
+
+  rule {
+    name     = "block-non-office"
+    priority = 1
+
+    action {
+      block {}
+    }
+
+    statement {
+      and_statement {
+        statement {
+          regex_pattern_set_reference_statement {
+            arn = aws_wafv2_regex_pattern_set.planning_bot_host.arn
+
+            text_transformation {
+              priority = 1
+              type     = "LOWERCASE"
+            }
+
+            field_to_match {
+              single_header {
+                name = "host"
+              }
+            }
+          }
+        }
+
+        statement {
+          not_statement {
+            statement {
+              ip_set_reference_statement {
+                arn = aws_wafv2_ip_set.office_ips.arn
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+resource "aws_wafv2_ip_set" "office_ips" {
+  name               = "PlanningBotIPWhitelist"
+  description        = "Whitelist for Plannig Bot to allows access from office"
+  scope              = "REGIONAL"
+  ip_address_version = "IPV4"
+
+  addresses = [
+    "${var.office_ip_address}/32",
+  ]
+}
+
+resource "aws_wafv2_regex_pattern_set" "planning_bot_host" {
+  name        = "PlanningBotHost"
+  description = "Planning Bot host regexp"
+  scope       = "REGIONAL"
+
+  regular_expression {
+    regex_string = "^${var.domain}$"
+  }
+}
