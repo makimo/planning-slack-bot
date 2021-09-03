@@ -71,6 +71,18 @@ resource "aws_wafv2_web_acl" "planning_bot" {
         }
       }
     }
+
+    visibility_config {
+      cloudwatch_metrics_enabled = false
+      metric_name                = "planning-bot-outside-office"
+      sampled_requests_enabled   = false
+    }
+  }
+
+  visibility_config {
+    cloudwatch_metrics_enabled = false
+    metric_name                = "planning-bot-gateway-acl"
+    sampled_requests_enabled   = false
   }
 }
 
