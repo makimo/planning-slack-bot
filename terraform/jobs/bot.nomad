@@ -24,6 +24,10 @@ job "planning-bot" {
     service {
       name = "planning-bot"
       port = "http"
+
+      tags = [
+        "urlprefix-${domain}/"
+      ]
     }
   }
 }

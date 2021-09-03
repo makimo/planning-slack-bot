@@ -4,6 +4,7 @@ resource "nomad_job" "planning_bot" {
     {
       datacenters = [var.datacenter],
       image       = "${aws_ecr_repository.planning_bot.repository_url}:${data.consul_keys.bot_image.var.tag}"
+      domain      = var.domain
     }
   )
 }
