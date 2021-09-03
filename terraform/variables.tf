@@ -10,6 +10,10 @@ variable "domain" {
   default = "fistaszek.makimo.pl"
 }
 
+variable "external_lb_name" {
+  default = "hs-external-lb"
+}
+
 variable "common_tags" {
   default = {
     Project : "PB",
