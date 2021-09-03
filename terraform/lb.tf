@@ -106,3 +106,8 @@ resource "aws_wafv2_regex_pattern_set" "planning_bot_host" {
     regex_string = "^${var.domain}$"
   }
 }
+
+resource "aws_wafv2_web_acl_association" "payment_gateway" {
+  resource_arn = data.aws_lb.main.arn
+  web_acl_arn  = aws_wafv2_web_acl.planning_bot.arn
+}
