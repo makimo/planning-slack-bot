@@ -27,6 +27,6 @@
   :target-path "target/%s"
   :profiles {:prod {:resource-paths ["config/prod"]}
              :dev  {:resource-paths ["config/dev"]
-                    :aliases {"run-dev" ["trampoline" "run" "-m" "name-service.delivery.server/run-dev"]}
+                    :aliases {"run-dev" ["trampoline" "run" "-m" "slack-planning-bot.delivery.server.server/run-dev"]}
                     :dependencies [[io.pedestal/pedestal.service-tools "0.5.8"]]}
              :uberjar {:aot :all}})
