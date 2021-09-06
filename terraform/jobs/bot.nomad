@@ -28,6 +28,13 @@ job "planning-bot" {
       tags = [
         "urlprefix-${domain}/"
       ]
+
+      check {
+        type = "http"
+        path = "/health"
+        interval = "10s"
+        timeout = "2s"
+      }
     }
   }
 }
