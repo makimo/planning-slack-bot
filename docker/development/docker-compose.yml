@@ -1,0 +1,15 @@
+version: "3.8"
+
+services:
+  planning-bot:
+    image: clojure:lein
+    working_dir: /app
+    volumes:
+      - maven-cache:/home/node/.m2
+      - ../..:/app
+    command: ["lein", "run-dev"]
+    ports:
+      - "8080:8080"
+
+volumes:
+  maven-cache:
