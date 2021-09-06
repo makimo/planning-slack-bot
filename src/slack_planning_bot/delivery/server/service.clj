@@ -3,7 +3,8 @@
             [slack-planning-bot.delivery.server.use-case :as uc]))
 
 (def routes #{["/date" :post uc/post-next-planning-date :route-name :post-next-planning-date]
-              ["/settings" :post uc/post-configure-bot :route-name :post-configure-bot]})
+              ["/settings" :post uc/post-configure-bot :route-name :post-configure-bot]
+              ["/health" :get (fn [_] {:status 204}) :route-name :health-check]})
 
 
 ; Consumed by name-service.server/create-server
