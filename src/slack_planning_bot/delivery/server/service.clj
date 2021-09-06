@@ -3,7 +3,8 @@
             [slack-planning-bot.delivery.server.use-case :as uc]))
 
 (def routes #{["/date" :post uc/post-next-planning-date :route-name :post-next-planning-date]
-              ["/settings" :post uc/post-configure-bot :route-name :post-configure-bot]})
+              ["/settings" :post uc/post-configure-bot :route-name :post-configure-bot]
+              ["/health" :get (fn [_] {:status 204}) :route-name :health-check]})
 
 
 ; Consumed by name-service.server/create-server
@@ -39,7 +40,7 @@
    ; Either :jetty, :immutant or :tomcat (see comments in project.clj)
    ; This can also be your own chain provider/server-fn -- http://pedestal.io/reference/architecture-overview#_chain_provider
    ::http/type :jetty
-   ;::http/host "localhost"
+   ::http/host "0.0.0.0"
    ::http/port 8080
    ; Options to pass to the container (Jetty)
    ::http/container-options
